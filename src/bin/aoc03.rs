@@ -6,32 +6,25 @@ fn main() {
     let input = std::fs::read_to_string("inputs/input03.txt").unwrap();
     let claims = parse_claims(input);
 
-    let mut map: HashMap<(_, _), Vec<_>> = HashMap::new();
+    let mut claims_by_coord = HashMap::new();
     for claim in &claims {
-        for (x, y) in claim_tiles(claim) {
-            map
-                .entry((x, y))
-                .and_modify(|ids| ids.push(claim.id))
-                .or_insert(vec![claim.id]);
+        for coord in claim_tiles(claim) {
+            claims_by_coord
+                .entry(coord)
+                .and_modify(|count| *count += 1)
+                .or_insert(1);
         }
     }
 
-    let number_of_overlapping = map
+    let number_of_overlapping = claims_by_coord
         .values()
-        .filter(|ids| ids.len() >= 2)
+        .filter(|count| **count >= 2)
         .count();
     println!("Number of overlapping = {}", number_of_overlapping);
 
-    // FIXME: rewrite this chain
     let non_overlapping_claim = claims
         .iter()
-        .find(|claim|
-            claim_tiles(claim)
-                .all(|coord|
-                    map
-                        .get(&coord)
-                        .map(|ids| ids.len())
-                        .unwrap_or(0) == 1));
+        .find(|claim| claim_tiles(claim).all(|coord| claims_by_coord[&coord] == 1));
 
     println!("Non-overlapping claim = {}", non_overlapping_claim.unwrap().id);
 }

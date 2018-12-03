@@ -1,6 +1,8 @@
 extern crate regex;
+extern crate itertools;
 
 use std::collections::HashMap;
+use itertools::iproduct;
 
 fn main() {
     let input = std::fs::read_to_string("inputs/input03.txt").unwrap();
@@ -25,20 +27,14 @@ fn main() {
     let non_overlapping_claim = claims
         .iter()
         .find(|claim| claim_tiles(claim).all(|coord| claims_by_coord[&coord] == 1));
-
     println!("Non-overlapping claim = {}", non_overlapping_claim.unwrap().id);
 }
 
 fn claim_tiles(claim: &Claim) -> impl Iterator<Item=(u32, u32)> {
-    // FIXME: get rid of the allocation
-    let mut tiles = vec![];
-    for x in claim.x..claim.x + claim.width {
-        for y in claim.y..claim.y + claim.height {
-            tiles.push((x, y));
-        }
-    }
-
-    tiles.into_iter()
+    iproduct!(
+        claim.x..claim.x + claim.width,
+        claim.y..claim.y + claim.height
+    )
 }
 
 fn parse_claims(input: String) -> Vec<Claim> {

@@ -1,6 +1,3 @@
-extern crate regex;
-extern crate itertools;
-
 use std::collections::HashMap;
 use itertools::iproduct;
 

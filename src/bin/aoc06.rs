@@ -40,7 +40,7 @@ fn part_1(points: &Vec<Point>) -> Option<usize> {
     size_of_largest_inferior_area.map(|x| *x.1)
 }
 
-fn part_2(points: &Vec<Point>) -> i32 {
+fn part_2(points: &[Point]) -> i32 {
     let mut area_size = 0;
     let (min_x, max_x, min_y, max_y) = bounds(&points);
     for y in (min_y - 1)..=(max_y + 1) {

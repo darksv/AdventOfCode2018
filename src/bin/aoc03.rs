@@ -40,13 +40,13 @@ fn parse_claims(input: String) -> Vec<Claim> {
     input
         .lines()
         .filter_map(|line| re.captures(line))
-        .map(|c| {
+        .filter_map(|c| {
             Claim {
-                id: c[1].parse().unwrap(),
-                x: c[2].parse().unwrap(),
-                y: c[3].parse().unwrap(),
-                width: c[4].parse().unwrap(),
-                height: c[5].parse().unwrap(),
+                id: c[1].parse().ok()?,
+                x: c[2].parse().ok()?,
+                y: c[3].parse().ok()?,
+                width: c[4].parse().ok()?,
+                height: c[5].parse().ok()?,
             }
         })
         .collect()

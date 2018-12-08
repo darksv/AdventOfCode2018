@@ -37,19 +37,19 @@ fn find_most_sleepy_guard_ever(table_by_guard: &HashMap<u32, [u32; 60]>) -> Opti
     Some((guard, most_sleepy_minute))
 }
 
-fn generate_tables(entries: &[Entry]) -> HashMap<u32, [u32; 60]> {
+fn generate_tables(events: &[Event]) -> HashMap<u32, [u32; 60]> {
     let mut table_by_guard = HashMap::new();
     let mut guard = None;
     let mut sleep_from = None;
-    for entry in entries {
-        match entry.action {
-            Action::BeginShift => {
+    for entry in events {
+        match entry.event_type {
+            EventType::BeginShift => {
                 guard = entry.guard;
             }
-            Action::FallAsleep => {
+            EventType::FallAsleep => {
                 sleep_from = Some(entry.datetime);
             }
-            Action::WakeUp => {
+            EventType::WakeUp => {
                 let guard = guard.unwrap();
                 let start = sleep_from.unwrap().minute();
                 let end = entry.datetime.minute();
@@ -76,44 +76,39 @@ fn max_with_index(items: &[u32]) -> Option<(usize, &u32)> {
         .max_by_key(|(_, value)| **value)
 }
 
-fn parse_input(input: String) -> Vec<Entry> {
+fn parse_input(input: String) -> Vec<Event> {
     const DATETIME_FORMAT: &str = "%Y-%m-%d %H:%M";
 
-    let mut entries = vec![];
-
     let re = regex::Regex::new(r"Guard #(\d+) begins shift").unwrap();
-    for line in input.lines() {
-        let datetime = NaiveDateTime::parse_from_str(&line[1..17], DATETIME_FORMAT).unwrap();
-        let (action, guard) = match &line[19..] {
-            "falls asleep" => (Action::FallAsleep, None),
-            "wakes up" => (Action::WakeUp, None),
+
+    input.lines().filter_map(|line| {
+        let datetime = NaiveDateTime::parse_from_str(&line[1..17], DATETIME_FORMAT).ok()?;
+        let (event_type, guard) = match &line[19..] {
+            "falls asleep" => (EventType::FallAsleep, None),
+            "wakes up" => (EventType::WakeUp, None),
             other => {
-                let id = re.captures(other).unwrap()[1].parse().unwrap();
-                (Action::BeginShift, Some(id))
+                let id = re.captures(other)?[1].parse().ok()?;
+                (EventType::BeginShift, Some(id))
             }
         };
 
-        let entry = Entry {
+        Some(Event {
             datetime,
             guard,
-            action,
-        };
-
-        entries.push(entry);
-    }
-
-    entries
+            event_type,
+        })
+    }).collect()
 }
 
 #[derive(Debug)]
-struct Entry {
+struct Event {
     datetime: NaiveDateTime,
     guard: Option<u32>,
-    action: Action,
+    event_type: EventType,
 }
 
 #[derive(Debug)]
-enum Action {
+enum EventType {
     BeginShift,
     FallAsleep,
     WakeUp,

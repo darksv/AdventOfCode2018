@@ -11,15 +11,7 @@ fn main() {
 fn parse_input(input: &str) -> Vec<i32> {
     input
         .lines()
-        .filter_map(|line| -> Option<i32> {
-            let sign = match &line[0..1] {
-                "+" => 1,
-                "-" => -1,
-                _ => return None,
-            };
-            let value: i32 = line[1..].parse().ok()?;
-            Some(value * sign)
-        })
+        .filter_map(|line| line.parse().ok())
         .collect()
 }
 

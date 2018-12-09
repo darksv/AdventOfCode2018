@@ -3,7 +3,7 @@ use itertools::iproduct;
 
 fn main() {
     let input = std::fs::read_to_string("inputs/input03.txt").unwrap();
-    let claims = parse_claims(input);
+    let claims = parse_claims(&input);
 
     let mut claims_by_coord = HashMap::new();
     for claim in &claims {
@@ -34,20 +34,20 @@ fn claim_tiles(claim: &Claim) -> impl Iterator<Item=(u32, u32)> {
     )
 }
 
-fn parse_claims(input: String) -> Vec<Claim> {
+fn parse_claims(input: &str) -> Vec<Claim> {
     let re = regex::Regex::new(r"#(\d+) @ (\d+),(\d+): (\d+)x(\d+)").unwrap();
 
     input
         .lines()
         .filter_map(|line| re.captures(line))
         .filter_map(|c| {
-            Claim {
+            Some(Claim {
                 id: c[1].parse().ok()?,
                 x: c[2].parse().ok()?,
                 y: c[3].parse().ok()?,
                 width: c[4].parse().ok()?,
                 height: c[5].parse().ok()?,
-            }
+            })
         })
         .collect()
 }

@@ -1,9 +1,14 @@
+use std::collections::VecDeque;
+
 fn main() {
     let players = slow(452, 70784);
-    println!("players = {:#?}", players);
+    println!("High score = {:#?}", players);
 
     let players = fast(452, 7078400);
-    println!("players = {:#?}", players);
+    println!("High score = {:#?}", players);
+
+//    let players = fast(452, 70784000);
+//    println!("High score = {:#?}", players);
 }
 
 fn slow(number_of_players: usize, last_marble: usize) -> usize {
@@ -39,7 +44,34 @@ fn slow(number_of_players: usize, last_marble: usize) -> usize {
 }
 
 fn fast(number_of_players: usize, last_marble: usize) -> usize {
-    slow(number_of_players, last_marble)
+    let mut circle = VecDeque::with_capacity(last_marble);
+    circle.push_back(0);
+
+    let mut players = vec![0; number_of_players];
+    let mut next_to_insert = 1;
+
+    for i in 0..=last_marble {
+        let player = i % number_of_players;
+
+        if next_to_insert % 23 != 0 {
+            let marble = circle.pop_front().unwrap();
+            circle.push_back(marble);
+            circle.push_back(next_to_insert);
+        } else {
+            players[player] += next_to_insert;
+            for _ in 0..7 {
+                let marble = circle.pop_back().unwrap();
+                circle.push_front(marble);
+            }
+            players[player] += circle.pop_back().unwrap();
+
+            let marble = circle.pop_front().unwrap();
+            circle.push_back(marble);
+        }
+        next_to_insert += 1;
+    }
+
+    players.into_iter().max().unwrap()
 }
 
 

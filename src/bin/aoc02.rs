@@ -9,8 +9,8 @@ fn main() {
 }
 
 fn checksum(ids: &[&str]) -> i32 {
-    let mut count2 = 0;
-    let mut count3 = 0;
+    let mut count_twos = 0;
+    let mut count_threes = 0;
     for id in ids {
         let mut counts = HashMap::new();
         for c in id.chars() {
@@ -20,25 +20,15 @@ fn checksum(ids: &[&str]) -> i32 {
                 .or_insert(1);
         }
 
-        let mut has2 = false;
-        let mut has3 = false;
-
-        for (_, count) in counts {
-            match count {
-                2 => has2 = true,
-                3 => has3 = true,
-                _ => ()
-            }
+        if counts.values().any(|&c| c == 2) {
+            count_twos += 1;
         }
 
-        if has2 {
-            count2 += 1;
-        }
-        if has3 {
-            count3 += 1;
+        if counts.values().any(|&c| c == 3) {
+            count_threes += 1;
         }
     }
-    count3 * count2
+    count_threes * count_twos
 }
 
 fn common_letters(ids: &[&str]) -> String {

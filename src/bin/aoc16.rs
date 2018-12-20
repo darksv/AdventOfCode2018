@@ -1,3 +1,7 @@
+mod vm;
+
+use crate::vm::{Opcode, execute};
+
 fn main() {
     let input = std::fs::read_to_string("inputs/input16.txt").unwrap();
 
@@ -16,7 +20,7 @@ fn execute_program(program: &[Inst], mapping: &[Option<Opcode>; 16]) -> Regs {
     let mut regs = [0; 4];
     for [opcode, a, b, c] in program {
         let opcode = mapping[*opcode as usize].unwrap();
-        regs = execute(opcode, *a, *b, *c, regs).unwrap();
+        execute(opcode, *a, *b, *c, &mut regs).unwrap();
     }
     regs
 }
@@ -88,7 +92,10 @@ fn possible_opcodes(a: u32, b: u32, c: u32, before: Regs, after: Regs) -> impl I
         eqir, eqri, eqrr
     ]
         .iter()
-        .filter(move |&op|  execute(*op, a, b, c, before) == Some(after))
+        .filter(move |&op|  {
+            let mut new = before.clone();
+            execute(*op, a, b, c, &mut new).is_ok() && new == after
+        })
         .cloned()
 }
 
@@ -102,49 +109,3 @@ fn parse_inst(y: &str) -> Option<[u32; 4]> {
     Some([i.next()?, i.next()?, i.next()?, i.next()?])
 }
 
-#[allow(non_camel_case_types)]
-#[derive(Copy, Clone, PartialOrd, PartialEq, Debug)]
-enum Opcode {
-    addr,
-    addi,
-    mulr,
-    muli,
-    banr,
-    bani,
-    borr,
-    bori,
-    setr,
-    seti,
-    gtir,
-    gtri,
-    gtrr,
-    eqir,
-    eqri,
-    eqrr,
-}
-
-fn execute(op: Opcode, a: u32, b: u32, c: u32, regs: [u32; 4]) -> Option<[u32; 4]> {
-    let r = |r: u32| regs.get(r as usize).cloned();
-    use crate::Opcode::*;
-
-    let mut regs = regs.clone();
-    regs[c as usize] = match op {
-        addr => r(a)? + r(b)?,
-        addi => r(a)? + b,
-        mulr => r(a)? * r(b)?,
-        muli => r(a)? * b,
-        banr => r(a)? & r(b)?,
-        bani => r(a)? & b,
-        borr => r(a)? | r(b)?,
-        bori => r(a)? | b,
-        setr => r(a)?,
-        seti => a,
-        gtir => (a > r(b)?) as u32,
-        gtri => (r(a)? > b) as u32,
-        gtrr => (r(a)? > r(b)?) as u32,
-        eqir => (a == r(b)?) as u32,
-        eqri => (r(a)? == b) as u32,
-        eqrr => (r(a)? == r(b)?) as u32,
-    };
-    Some(regs)
-}
